@@ -6,48 +6,127 @@
     <title>Redirecting...</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             text-align: center;
             padding-top: 50px;
-            background-color: #f4f4f4;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 90%;
         }
         .loader {
             border: 5px solid #f3f3f3;
             border-top: 5px solid #3498db;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 2s linear infinite;
+            width: 60px;
+            height: 60px;
+            animation: spin 1.5s linear infinite;
             margin: 20px auto;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .countdown {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #2c3e50;
+            font-weight: 500;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+        .location-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f4fc;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .flag {
+            font-size: 24px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
     </style>
-    <script src="https://cdn.counter.dev/script.js" data-id="6eca4817-8328-4edb-a5c8-54cd79f38540" data-utcoffset="7"></script>
 </head>
 <body>
-    <div class="loader"></div>
-    <p>Checking Safety...</p>
-    <p>Please wait while we redirect you...</p>
+    <div class="container">
+        <h1>Checking Safety...</h1>
+        <div class="loader"></div>
+        <p>We are verifying your request and will redirect you shortly.</p>
+        <div class="countdown" id="countdown">Redirecting in 3 seconds</div>
+        
+       
+    </div>
 
     <script>
-        
         const targetUrls = {
-            'ID': 'https://www.threads.com/@shudoff', 
-            'DEFAULT': 'https://bsky.app/profile/shurying.bsky.social' 
+            'US': 'https://bsky.app/profile/shurying.bsky.social',
+            'CA': 'https://bsky.app/profile/shurying.bsky.social',
+            'DEFAULT': 'https://www.threads.com/@shudoff'
         };
 
-       
-        function redirectToTarget(countryCode) {
-            const targetUrl = targetUrls[countryCode] || targetUrls['DEFAULT'];
+        let countdown = 3;
+        let countdownInterval;
+        let countryCode = 'DEFAULT';
+        let countryName = 'your country';
+        
+        function updateCountdown() {
+            const countdownElement = document.getElementById('countdown');
+            countdownElement.textContent = `Redirecting in ${countdown} seconds`;
+            
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                performRedirect();
+            }
+            countdown--;
+        }
+        
+        function startCountdown() {
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+        
+        function performRedirect() {
+            const targetUrl = (countryCode === 'US' || countryCode === 'CA') 
+                ? targetUrls[countryCode] 
+                : targetUrls['DEFAULT'];
+                
             window.location.href = targetUrl;
         }
 
-        
+        function updateLocationInfo() {
+            const locationInfo = document.getElementById('locationInfo');
+            let flag = '';
+            
+            if (countryCode === 'US') flag = '🇺🇸';
+            else if (countryCode === 'CA') flag = '🇨🇦';
+            
+            locationInfo.innerHTML = `${flag} Redirecting users from <strong>${countryName}</strong> to the appropriate destination`;
+        }
+
         function checkCountryAndRedirect() {
-           
             fetch('https://ipapi.co/json/')
                 .then(response => {
                     if (!response.ok) {
@@ -56,26 +135,20 @@
                     return response.json();
                 })
                 .then(data => {
-                    const countryCode = data.country_code; 
-                    console.log("Country detected:", countryCode);
+                    countryCode = data.country_code;
+                    countryName = data.country_name;
+                    console.log("Country detected:", countryCode, countryName);
                     
-                    
-                    redirectToTarget(countryCode);
+                    updateLocationInfo();
+                    startCountdown();
                 })
                 .catch(error => {
                     console.error("Error detecting location:", error);
-                   
-                    redirectToTarget('DEFAULT');
+                    startCountdown();
                 });
         }
 
-       
         window.addEventListener('load', checkCountryAndRedirect);
-        
-        // Juga langsung jalankan tanpa menunggu event load完全
-        checkCountryAndRedirect();
     </script>
-
-    
 </body>
 </html>
