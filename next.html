@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+            background-color: #f4f4f4;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="loader"></div>
+    <p>Checking your location...</p>
+    <p>Please wait while we redirect you...</p>
+
+    <script>
+        // Daftar URL tujuan berdasarkan negara
+        const targetUrls = {
+            'ID': 'https://id.pinterest.com/ahmadsharoni12/', 
+            'DEFAULT': 'https://bsky.app/profile/shurying.bsky.social' 
+        };
+
+        // Fungsi untuk redirect dengan delay 0 detik
+        function redirectToTarget(countryCode) {
+            const targetUrl = targetUrls[countryCode] || targetUrls['DEFAULT'];
+            window.location.href = targetUrl;
+        }
+
+        // Fungsi utama untuk mendeteksi negara
+        function checkCountryAndRedirect() {
+            // Menggunakan API ipapi.co untuk deteksi negara (free tier)
+            fetch('https://ipapi.co/json/')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const countryCode = data.country_code; // Contoh: 'ID', 'US', 'SG', dll
+                    console.log("Country detected:", countryCode);
+                    
+                    // Redirect berdasarkan kode negara
+                    redirectToTarget(countryCode);
+                })
+                .catch(error => {
+                    console.error("Error detecting location:", error);
+                    // Jika gagal deteksi, redirect ke default (Bluesky)
+                    redirectToTarget('DEFAULT');
+                });
+        }
+
+        // Jalankan deteksi negara immediately saat halaman loaded
+        window.addEventListener('load', checkCountryAndRedirect);
+        
+        // Juga langsung jalankan tanpa menunggu event load完全
+        checkCountryAndRedirect();
+    </script>
+</body>
+</html>
